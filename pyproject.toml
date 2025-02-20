@@ -1,0 +1,30 @@
+[project]
+name = "cryptopulse"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "mypy>=1.15.0",
+    "pydantic-settings>=2.7.1",
+    "ruff>=0.9.6",
+]
+
+
+
+###################################
+#Config Linters
+###################################
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+line-length = 120 
+lint.select = ["E", "F", "W"]  
+lint.ignore = ["W293", "W291"]  
+exclude = []
