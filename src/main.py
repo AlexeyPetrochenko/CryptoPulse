@@ -1,30 +1,17 @@
 import httpx
-import enum
 import time
 import asyncio
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from decimal import Decimal
+from datetime import datetime
 
-
-class Config(BaseSettings):
-    CMC_PRO_API_KEY: str
-    
-    model_config = SettingsConfigDict(env_file='.env')
-    
-config = Config()  
-
-
-class CurrencyPair(enum.StrEnum):
-    BTC_USDT = 'BTCUSDT'
-    BTC_ETH = "ETHBTC"
-    BTC_XMR = "BTCXMR"
-    BTC_SOL = "BTC_SOL"
-    BTC_RUB = "BTC_RUB"
-    BTC_DOGE = "BTC_DOGE"
+from src.config import load_from_env
+from src.repository import CryptoRepository
+from src.models import PriceSh, NameExchanges, CurrencyPair
 
 
 headers = {
   'Accepts': 'application/json',
-  'X-CMC_PRO_API_KEY': config.CMC_PRO_API_KEY,
+  'X-CMC_PRO_API_KEY': load_from_env().CMC_PRO_API_KEY,
 }
     
     
@@ -54,10 +41,29 @@ class CryptoAPIClient:
             return price_coinmarket, price_binance, price_kucoin, price_bybit
         
         
+    async def make_data(self) -> PriceSh:
+        tuple_prices = await self.request_to_api()
+        max_price = max(map(float, tuple_prices))
+        data = PriceSh(
+            exchange_name=NameExchanges.BINANCE,
+            currency_pair=CurrencyPair.BTC_USDT,
+            price=Decimal(max_price),
+            max_price=Decimal(max_price),
+            min_price=Decimal(max_price),
+            difference=Decimal(max_price - max_price),
+            total_amount=Decimal(3 * max_price),
+            date_at=datetime.now()
+        )
+        return data
+    
+    
+    async def service_write_in_db(self) -> int:
+        data = await self.make_data()
+        id = await CryptoRepository.add_new_max_price(data)
+        return id
         
 if __name__ == '__main__':
     start = time.time()
     client = CryptoAPIClient()
-    answer = asyncio.run(client.request_to_api())
-    print(answer)
+    answer = asyncio.run(client.service_write_in_db())
     print(time.time() - start)
