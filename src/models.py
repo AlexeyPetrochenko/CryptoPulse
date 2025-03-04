@@ -50,3 +50,7 @@ class PriceSh(BaseModel):
     difference: Decimal
     total_amount: Decimal
     date_at: datetime
+    
+
+class PriceShFromDB(PriceSh):
+    id: int
