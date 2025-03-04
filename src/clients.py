@@ -37,6 +37,7 @@ class CryptoAPIClient:
     async def get_exchange_rate(self) -> PriceSh:
         data = await self.request_to_api()
         price = Decimal(self.parsing_data(data)[0].value)
+        
         return PriceSh(
             exchange_name=self.exchange_name,
             currency_pair=self.currency_pair,
